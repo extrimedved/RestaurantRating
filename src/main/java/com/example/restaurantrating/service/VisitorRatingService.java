@@ -6,65 +6,60 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.restaurantrating.domain.entity.VisitorRating;
+import com.example.restaurantrating.dto.VisitorRatingRequest;
+import com.example.restaurantrating.dto.VisitorRatingResponse;
+import com.example.restaurantrating.mapper.VisitorRatingMapper;
 import com.example.restaurantrating.repository.VisitorRatingRepository;
-import com.example.restaurantrating.repository.VisitorRepository;
-import com.example.restaurantrating.repository.RestaurantRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class VisitorRatingService {
     private final VisitorRatingRepository visitorRatingRepository;
-    private final RestaurantRepository restaurantRepository;
     private final RestaurantService restaurantService;
-    private final VisitorRepository visitorRepository;
+    private final VisitorService visitorService;
+    private final VisitorRatingMapper visitorRatingMapper;
 
-    public VisitorRatingService(VisitorRatingRepository visitorRatingRepository, RestaurantService restaurantService, 
-    VisitorRepository visitorRepository, RestaurantRepository restaurantRepository) {
-        this.visitorRatingRepository = visitorRatingRepository;
-        this.restaurantService = restaurantService;
-        this.restaurantRepository = restaurantRepository;
-        this.visitorRepository = visitorRepository;
-
+    public VisitorRatingResponse create(VisitorRatingRequest dto) {
+        if (restaurantService.findById(dto.restaurantId()) == null) 
+            throw new IllegalArgumentException("Ресторан с таким ID не найден");
+        if (visitorService.findById(dto.visitorId()) == null) 
+            throw new IllegalArgumentException("Посетитель с таким ID не найден");
+        VisitorRating entity = visitorRatingMapper.toEntity(dto);
+        visitorRatingRepository.create(entity);
+        recalcRatingForRestaurant(dto.restaurantId());
+        return visitorRatingMapper.toDto(entity);
     }
 
-    public VisitorRating save(VisitorRating visitorRating) {
-        if (visitorRating.getRating() < 1 || visitorRating.getRating() > 5)
-            throw new IllegalArgumentException("Оценка должна быть от 1 до 5");
-        if (visitorRating.getRestaurantId() == null || visitorRating.getRestaurantId() <= 0) 
-            throw new IllegalArgumentException("ID ресторана обязательно и не должно быть меньше или равно 0");
-        if (visitorRating.getVisitorId() == null || visitorRating.getVisitorId() <= 0) 
-            throw new IllegalArgumentException("ID посетителя обязательно и не должно быть меньше или равно 0");
-        if (restaurantRepository.findById(visitorRating.getRestaurantId()) == null)
+    public VisitorRatingResponse update(Long visitorId, Long restaurantId, VisitorRatingRequest dto) {
+        if (restaurantService.findById(dto.restaurantId()) == null) 
             throw new IllegalArgumentException("Ресторан с таким ID не найден");
-        if (visitorRepository.findById(visitorRating.getVisitorId()) == null)
+        if (visitorService.findById(dto.visitorId()) == null) 
             throw new IllegalArgumentException("Посетитель с таким ID не найден");
-
-        visitorRatingRepository.save(visitorRating);
-        recalcRatingForRestaurant(visitorRating.getRestaurantId());
-        return visitorRating;
+        VisitorRating entity = visitorRatingMapper.toEntity(dto);
+        entity = new VisitorRating(visitorId, restaurantId, entity.getRating(), entity.getReviewText());
+        visitorRatingRepository.update(entity);
+        recalcRatingForRestaurant(restaurantId);
+        return visitorRatingMapper.toDto(entity);
     }
 
     public boolean remove(Long visitorId, Long restaurantId) {
-        if(visitorId == null || restaurantId == null){
-            throw new IllegalArgumentException("Введите id ресторана и id пользователя");
-        }
         boolean removed = visitorRatingRepository.remove(visitorId, restaurantId);
         recalcRatingForRestaurant(restaurantId);
         return removed;
     }
 
-    public List<VisitorRating> findAll() {
-        return visitorRatingRepository.findAll();
+    public List<VisitorRatingResponse> findAll() {
+        return visitorRatingRepository.findAll()
+                .stream()
+                .map(visitorRatingMapper::toDto)
+                .toList();
     }
 
-    public VisitorRating findById(Long visitorId, Long restaurantId) {
-        if(visitorId == null || restaurantId == null){
-            throw new IllegalArgumentException("Введите id ресторана и id пользователя");
-        }
-        VisitorRating visitorRating = visitorRatingRepository.findById(visitorId, restaurantId);
-        if (visitorRating == null) {
-            throw new RuntimeException("Оценка не найдена");
-        }
-        return visitorRating;
+    public VisitorRatingResponse findById(Long visitorId, Long restaurantId) {
+        VisitorRating entity = visitorRatingRepository.findById(visitorId, restaurantId);
+        return visitorRatingMapper.toDto(entity);
     }
 
     private void recalcRatingForRestaurant(Long restaurantId) {

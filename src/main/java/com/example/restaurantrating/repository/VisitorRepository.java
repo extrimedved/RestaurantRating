@@ -12,16 +12,23 @@ import com.example.restaurantrating.domain.entity.Visitor;
 public class VisitorRepository {
 
     private final List<Visitor> visitors = new ArrayList<>();
+    private long nextId = 1; 
 
-    public Visitor save(Visitor visitor) {
-        for (int i = 0; i < visitors.size(); i++) {
-            if (visitors.get(i).getId().equals(visitor.getId())) {
-                visitors.remove(i);
-                break;
-            }
-        }
+     public Visitor create(Visitor visitor) {
+        visitor = new Visitor(nextId++, visitor.getName(),
+                visitor.getAge(), visitor.getGender());
         visitors.add(visitor);
         return visitor;
+    }
+
+    public Visitor update(Visitor visitor) {
+        for (int i = 0; i < visitors.size(); i++) {
+            if (visitors.get(i).getId().equals(visitor.getId())) {
+                visitors.set(i, visitor); 
+                return visitor;
+            }
+        }
+        throw new RuntimeException("Посетитель не найден");
     }
 
     public boolean remove(Long id) {
