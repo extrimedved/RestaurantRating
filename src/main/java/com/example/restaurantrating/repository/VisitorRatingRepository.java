@@ -11,18 +11,21 @@ import com.example.restaurantrating.domain.entity.VisitorRating;
 public class VisitorRatingRepository {
     private final List<VisitorRating> visitorRatings = new ArrayList<>();
 
-     public VisitorRating save(VisitorRating visitorRating) {
+     public VisitorRating create(VisitorRating visitorRating) {
+        visitorRatings.add(visitorRating);
+        return visitorRating;
+    }
+
+    public VisitorRating update(VisitorRating visitorRating) {
         for (int i = 0; i < visitorRatings.size(); i++) {
             VisitorRating vr = visitorRatings.get(i);
             if (vr.getVisitorId().equals(visitorRating.getVisitorId()) &&
                 vr.getRestaurantId().equals(visitorRating.getRestaurantId())) {
-                visitorRatings.remove(i);
-                break;
+                visitorRatings.set(i, visitorRating);
+                return visitorRating;
             }
         }
-
-        visitorRatings.add(visitorRating);
-        return visitorRating;
+        throw new RuntimeException("Оценка не найдена");
     }
 
     public boolean remove(Long visitorId, Long restaurantId) {
