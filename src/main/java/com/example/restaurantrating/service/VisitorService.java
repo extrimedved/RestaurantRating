@@ -15,34 +15,45 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class VisitorService {
+
     private final VisitorRepository visitorRepository;
     private final VisitorMapper visitorMapper;
 
-     public VisitorResponse create(VisitorRequest dto) {
+    public VisitorResponse create(VisitorRequest dto) {
         Visitor visitor = visitorMapper.toEntity(dto);
-        visitorRepository.create(visitor);
+        visitor = visitorRepository.save(visitor);
         return visitorMapper.toDto(visitor);
     }
 
     public VisitorResponse update(Long id, VisitorRequest dto) {
-        Visitor visitor = visitorMapper.toEntity(dto);
-        visitor = new Visitor(id, visitor.getName(), visitor.getAge(), visitor.getGender()); 
-        visitorRepository.update(visitor);
-        return visitorMapper.toDto(visitor);
+        Visitor existing = visitorRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Посетитель не найден"));
+
+        existing.setName(dto.name());
+        existing.setAge(dto.age());
+        existing.setGender(dto.gender());
+
+        existing = visitorRepository.save(existing);
+        return visitorMapper.toDto(existing);
     }
 
     public boolean remove(Long id) {
-        return visitorRepository.remove(id);
+        if (!visitorRepository.existsById(id))
+            return false;
+
+        visitorRepository.deleteById(id);
+        return true;
     }
 
     public VisitorResponse findById(Long id) {
-        Visitor visitor = visitorRepository.findById(id);
+        Visitor visitor = visitorRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Посетитель не найден"));
+
         return visitorMapper.toDto(visitor);
     }
 
     public List<VisitorResponse> findAll() {
-        return visitorRepository.findAll()
-                .stream()
+        return visitorRepository.findAll().stream()
                 .map(visitorMapper::toDto)
                 .toList();
     }

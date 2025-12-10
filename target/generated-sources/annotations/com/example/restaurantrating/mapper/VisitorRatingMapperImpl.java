@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-11-25T18:47:22+0400",
+    date = "2025-12-10T14:44:05+0400",
     comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.44.0.v20251118-1623, environment: Java 21.0.9 (Eclipse Adoptium)"
 )
 @Component
@@ -22,8 +22,6 @@ public class VisitorRatingMapperImpl implements VisitorRatingMapper {
 
         VisitorRating visitorRating = new VisitorRating();
 
-        visitorRating.setVisitorId( dto.visitorId() );
-        visitorRating.setRestaurantId( dto.restaurantId() );
         visitorRating.setRating( dto.rating() );
         visitorRating.setReviewText( dto.reviewText() );
 
@@ -36,15 +34,14 @@ public class VisitorRatingMapperImpl implements VisitorRatingMapper {
             return null;
         }
 
-        Long visitorId = null;
-        Long restaurantId = null;
         int rating = 0;
         String reviewText = null;
 
-        visitorId = visitor.getVisitorId();
-        restaurantId = visitor.getRestaurantId();
         rating = visitor.getRating();
         reviewText = visitor.getReviewText();
+
+        Long visitorId = null;
+        Long restaurantId = null;
 
         VisitorRatingResponse visitorRatingResponse = new VisitorRatingResponse( visitorId, restaurantId, rating, reviewText );
 
