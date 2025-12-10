@@ -21,37 +21,51 @@ public class RestaurantService {
 
     public RestaurantResponse create(RestaurantRequest dto) {
         Restaurant restaurant = restaurantMapper.toEntity(dto);
-        restaurantRepository.create(restaurant);
+        restaurant = restaurantRepository.save(restaurant);
         return restaurantMapper.toDto(restaurant);
     }
 
     public RestaurantResponse update(Long id, RestaurantRequest dto) {
-        Restaurant restaurant = restaurantMapper.toEntity(dto);
-        restaurant = new Restaurant(id, restaurant.getName(), restaurant.getDescription(),
-                restaurant.getCuisineType(), restaurant.getAverageBill(), restaurant.getUserRating());
-        restaurantRepository.update(restaurant);
-        return restaurantMapper.toDto(restaurant);
+        Restaurant existing = restaurantRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Ресторан не найден"));
+
+        existing.setName(dto.name());
+        existing.setDescription(dto.description());
+        existing.setCuisineType(dto.cuisineType());
+        existing.setAverageBill(dto.averageBill());
+
+        existing = restaurantRepository.save(existing);
+
+        return restaurantMapper.toDto(existing);
     }
 
-     public boolean remove(Long id) {
-        return restaurantRepository.remove(id);
+    public boolean remove(Long id) {
+        if (!restaurantRepository.existsById(id))
+            return false;
+
+        restaurantRepository.deleteById(id);
+        return true;
     }
+
 
     public List<RestaurantResponse> findAll() {
-        return restaurantRepository.findAll()
-                .stream()
+        return restaurantRepository.findAll().stream()
                 .map(restaurantMapper::toDto)
                 .toList();
     }
 
     public RestaurantResponse findById(Long id) {
-        Restaurant restaurant = restaurantRepository.findById(id);
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Ресторан не найден"));
+
         return restaurantMapper.toDto(restaurant);
     }
 
-    public void updateAverageRating(Long restaurantId, BigDecimal average) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId);
-        restaurant.setUserRating(average);
-        restaurantRepository.update(restaurant);
+    public void updateAverageRating(Long restaurantId, BigDecimal avg) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new IllegalArgumentException("Ресторан не найден"));
+
+        restaurant.setUserRating(avg);
+        restaurantRepository.save(restaurant);
     }
 }

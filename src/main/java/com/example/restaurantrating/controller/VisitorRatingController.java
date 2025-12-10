@@ -32,9 +32,9 @@ public class VisitorRatingController {
     }
 
     @Operation(summary = "Получаем оценку по id")
-    @GetMapping("/{visitorId}/{restaurantId}")
-    public VisitorRatingResponse get(@PathVariable Long visitorId, @PathVariable Long restaurantId) {
-        return visitorRatingService.findById(visitorId, restaurantId);
+    @GetMapping("/{id}")
+    public VisitorRatingResponse get(@PathVariable Long id) {
+        return visitorRatingService.findById(id);
     }
 
     @Operation(summary = "Получаем все созданные оценки")
@@ -43,19 +43,15 @@ public class VisitorRatingController {
         return visitorRatingService.findAll();
     }
 
-    @Operation(summary = "обновляем оценки по id")
-    @PutMapping("/{visitorId}/{restaurantId}")
-    public VisitorRatingResponse update(
-            @PathVariable Long visitorId,
-            @PathVariable Long restaurantId,
-            @Valid @RequestBody VisitorRatingRequest dto
-    ) {
-        return visitorRatingService.update(visitorId, restaurantId, dto);
+    @Operation(summary = "Обновляем оценку по id")
+    @PutMapping("/{id}")
+    public VisitorRatingResponse update(@PathVariable Long id, @Valid @RequestBody VisitorRatingRequest dto) {
+        return visitorRatingService.update(id, dto);
     }
 
-    @Operation(summary = "Удаляем оценки по id")
-    @DeleteMapping("/{visitorId}/{restaurantId}")
-    public boolean delete(@PathVariable Long visitorId, @PathVariable Long restaurantId) {
-        return visitorRatingService.remove(visitorId, restaurantId);
+    @Operation(summary = "Удаляем оценку по id")
+    @DeleteMapping("/{id}")
+    public boolean delete(@PathVariable Long id) {
+        return visitorRatingService.remove(id);
     }
 }
